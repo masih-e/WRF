@@ -4518,7 +4518,8 @@ endif
                      enddo
                   end if
 
-                    ! Black carbon aerosol
+                    ! Black carbon aerosol   ! don't change here doesn't depend on the fire (M.E.)
+                    ! But this cannot exist now with the active fire see check_a_mundo
                   if (config_flags%wif_input_opt .EQ. 2) then
                      if (flag_qnbca2d .EQ. 1) then
                         CALL wrf_debug (0 , 'Calculating surface emissions of QNBCA using first guess')
@@ -4540,7 +4541,8 @@ endif
                   end if
 
                     ! Biomass burning aerosol
-                  if (config_flags%aer_fire_emit_opt .GT. 0) then
+                  if ((config_flags%aer_fire_emit_opt .GT. 0) .and. &
+                       (config_flags%aer_fire_emit_opt .lt. 10)) then ! only process when you don't have active fire ifire==0
                        ! Organic carbon first
                      if (flag_qnocbb2d .EQ. 1) then
                         CALL wrf_debug (0 , 'Calculating biomass burning surface emissions of organic carbon aerosol using first guess')

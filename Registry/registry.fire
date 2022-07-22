@@ -325,7 +325,17 @@ rconfig  real     fire_slope_factor         namelist,fire         max_domains   
 state    real            -          ikjftb  tracer        1         -     -    -
 state    real         fire_smoke    ikjftb  tracer        1         -     irhusdf=(bdy_interp:dt)    "fire_smoke"         "fire_smoke"     "g_smoke/kg_air"
 package  tracer_fire  tracer_opt==3       -             tracer:fire_smoke
+# ------------------------------------------------------------------------------------------------------------------------
+# scalar fields for hydrophobic and hydrophilic fire emissions (Masih Eghdami)
 #
+state   real    qnfbc1          ikjftb  scalar      1         -     \
+   i0rhusdf=(bdy_interp:dt)    "QNFBC1"         "hydrophopic black carbon"   " kg(-1)"
+#state   real    qnfbc2         ikjftb  scalar      1         -     \
+#   i0rhusdf=(bdy_interp:dt)    "QNFBC2"         "hydrophilic black carbon"   " kg(-1)"
+state   real    qnfoc1         ikjftb  scalar      1         -     \
+   i0rhusdf=(bdy_interp:dt)    "QNFOC1"         "hydrophobic org. carbon"   " kg(-1)"
+#state   real    qnfoc2         ikjftb  scalar      1         -     \
+#   i0rhusdf=(bdy_interp:dt)    "QNFOC2"         "hydrophilic org. carbon"   " kg(-1)"
 # ========================================================================================================================
 # Firebrand Spotting for WRF-Fire (Frediani et al 2022)
 # ========================================================================================================================

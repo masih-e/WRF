@@ -1,0 +1,10 @@
+&emissions
+! Classification,Grasslands,Grasslands,Temp Forests,Open Shrublands,Open Shrublands,Open Shrublands,Open Shrublands,Mixed Forests,Mixed Forests,Mixed Forests,Evergreen Forest,Evergreen Forest,Evergreen Forest,
+!Fuel Cat,1,2,3,4,5,6,7,8,9,10,11,12,13,
+!gass emissions [g/kg burnt]
+! hydrophobic organic carbon
+oc1=2.6,2.6,9.2,6.6,6.6,6.6,6.6,9.2,9.2,9.2,7.8,7.8,7.8, 
+! hydrophobic black carbon
+bc1=0.37,0.37,0.56,0.5,0.5,0.5,0.5,0.56,0.56,0.56,0.2,0.2,0.2,
+/
+

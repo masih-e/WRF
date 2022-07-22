@@ -493,6 +493,8 @@ state    real   qnifa2d          ij     misc        1         -     i01{17}rhdu 
 state    real   qnbca2d          ij     misc        1         -     i01{17}rhdu "QNBCA2D"     "Surface black carbon number conc emission"  "kg-1 s-1"
 state    real   qnocbb2d         ij     misc        1         -     i01{17}rhdu "QNOCBB2D"    "Surface organic carbon biomass burning number conc emission"  "kg-1 s-1"
 state    real   qnbcbb2d         ij     misc        1         -     i01{17}rhdu "QNBCBB2D"    "Surface black carbon biomass burning number conc emission"  "kg-1 s-1"
+state    real   qnfbc1_2d        ij     misc        1         -     i014{17}rhdu "QNFBC1_2D"       "Surface hydrophob-fire black carbon number conc emission"  " kg-1"
+state    real   qnfoc1_2d        ij     misc        1         -     i014{17}rhdu "QNFOC1_2D"       "Surface hydrophob-fire org. carbon number conc emission"  " kg-1"
 state    real   re_cloud         ikj    misc        1         -     r        "RE_CLOUD"       "Effective radius cloud water"  "m"
 state    real   re_ice           ikj    misc        1         -     r        "RE_ICE"         "Effective radius cloud ice"    "m"
 state    real   re_snow          ikj    misc        1         -     r        "RE_SNOW"        "Effective radius snow"         "m"
@@ -2608,11 +2610,13 @@ rconfig   logical use_aero_icbc           namelist,physics     	1              .
 rconfig   logical use_rap_aero_icbc       namelist,physics      1              .false. r     "use_rap_aero_icbc"  "Use GOCART climo 3D aerosols IC/BC data in Thompson-MP-Aero from RAP"  "logical flag"
 rconfig   integer aer_init_opt            derived               1              0       irh   "aer_init_opt"   "surrogate to handle aerosol IC/BC data in Thompson-MP-Aero: 0=no IC/BC aerosol, 1=climo, 2=first guess"
 rconfig   logical wif_fire_emit           namelist,physics      1              .false. irh   "wif_fire_emit"  "Activate biomass burning emissionsu in Thompson-MP-Aero"  " "
+rconfig   integer active_fire             derived               1              0       irh   "active_fire"    "Indicates there is active fire model in at least one domain"
 rconfig   integer aer_fire_emit_opt       derived               1              0       irh   "aer_fire_emit_opt"   "surrogate to handle aerosol fire emissions in Thompson-MP-Aero: 0=no fire emissions, 1=OC only, 2=OC+BC"  " "
 rconfig   integer wif_fire_inj            namelist,physics      max_domains    1       irh   "wif_fire_inj"   "Vertically distribute biomass burning emissions in Thompson-MP-Aero"  " "
+rconfig   real    fire_aerosol_tau        namelist,physics      1              2.0     irh   "fire_aerosol_tau" "fire emission aging turnover time"  "h"
 rconfig   integer use_mp_re               namelist,physics     	1              1       h     "use_mp_re"  "use effective radii computed in some mp schemes in RRTMG"  "flag"
 rconfig   logical insert_init_cloud       namelist,physics      1              .false. irh   "insert_init_cloud" "Insert diagnostic initial cloud using icloud=3 method (Thompson)"  "logical flag"
-
+rconfig  integer  couple_fire_aerosol     namelist,physics      1              0       h     "couple_fire_aerosol"  "Calculate OC and BC based on burnt fuel if 1"  " "
 # The following two options are hooked into various microphysics schemes to allow for ensemble perturbations of CCN and hail/graupel PSDs - GAC (AFWA)
 rconfig   real    ccn_conc                namelist,physics      1           1.0E8      h     "ccn_conc"                 "CCN concentration"                                                             "# m-3"
 rconfig   integer hail_opt                namelist,physics      1              0       rh    "hail_opt"                 "Hail/Graupel switch, 1:hail, 0:graupel"                                        ""

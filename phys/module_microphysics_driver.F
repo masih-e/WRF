@@ -53,7 +53,9 @@ SUBROUTINE microphysics_driver(                                          &
                       ,qzr_curr,qzi_curr,qzs_curr,qzg_curr,qzh_curr      &
                       ,qns_curr,qnr_curr,qng_curr,qnn_curr,qnc_curr      &
                       ,qnwfa_curr,qnifa_curr,qnbca_curr                  & ! for water/ice-friendly/black carbon aerosols
+                      ,qnfbc1_curr,qnfoc1_curr                           & ! hydrophobic black/organic carbon tracker
                       ,f_qnwfa,f_qnifa,f_qnbca                           & ! for water/ice-friendly/black carbon aerosols
+                      ,f_qnfbc1,f_qnfoc1                                 &
                       ,qvolg_curr,qvolh_curr                             &
                       ,qdcn_curr,qtcn_curr,qccn_curr,qrcn_curr           & ! for ntu3m
                       ,qnin_curr,fi_curr,fs_curr,vi_curr,vs_curr         & ! for ntu3m
@@ -110,6 +112,7 @@ SUBROUTINE microphysics_driver(                                          &
 #endif
                       ,qnwfa2d, qnifa2d, qnbca2d                         & ! for water/ice-friendly/black carbon aerosols
                       ,qnocbb2d, qnbcbb2d                                & ! for biomass burning aerosols
+                      ,qnfbc1_2d, qnfoc1_2d                              & ! for biomass burning aerosols (from the fire module ME)
                       ,refl_10cm                                         & ! HM, 9/22/09, add for refl
                       ,vmi3d                                             & ! for P3 
                       ,di3d                                              & ! for P3 
@@ -619,7 +622,8 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
    LOGICAL,  OPTIONAL,   INTENT(IN   )    :: channel_switch
    REAL, OPTIONAL,  INTENT(INOUT   ) :: naer  ! aerosol number concentration (/kg)
    REAL, DIMENSION( ims:ime, jms:jme ), INTENT(INOUT) , OPTIONAL :: qnwfa2d, qnifa2d, qnbca2d, &
-                                                                    qnocbb2d, qnbcbb2d
+                                                                    qnocbb2d, qnbcbb2d,        &  
+                                                                    qnfbc1_2d, qnfoc1_2d   ! for the fire emissions (M.E.)
    REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                  &
          OPTIONAL,                                                &
          INTENT(INOUT ) ::                                        &
@@ -644,6 +648,7 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                  ,kext_ft_qic,kext_ft_qip,kext_ft_qid &
                  ,kext_ft_qs,kext_ft_qg                           &
                  ,qnwfa_curr,qnifa_curr,qnbca_curr                & ! Added by G. Thompson
+                 ,qnfbc1_curr,qnfoc1_curr                         & ! ME for OC fire emissions
                  ,qvolg_curr,qvolh_curr, qrimef_curr
 
    REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                  &
@@ -719,8 +724,8 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                        ,f_qvoli,f_qaoli                                      & ! for Jensen ISHMAEL
                        ,f_qvoli2,f_qaoli2                                    & ! for Jensen ISHMAEL
                        ,f_qi3,f_qni3,f_qvoli3,f_qaoli3                       & ! for Jensen ISHMAEL
-                       ,f_qnwfa, f_qnifa, f_qnbca                         ! Added by G. Thompson
-
+                       ,f_qnwfa, f_qnifa                                     & ! Added by G. Thompson
+                       ,f_qnbca, f_qnfbc1, f_qnfoc1
 
    LOGICAL, OPTIONAL, INTENT(IN) :: diagflag
    INTEGER, OPTIONAL, INTENT(IN) :: ke_diag ! tells reflectivity calculation whether to do full depth or only k=1
@@ -1111,12 +1116,31 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                 deallocate (qni_tmp)
               end if
 
-              IF (config_flags%aer_fire_emit_opt.gt.0)  then
+              IF ((config_flags%aer_fire_emit_opt.eq.1).or.(config_flags%aer_fire_emit_opt.eq.2))  then
                 CALL wrf_debug ( 200 , ' call fire_emis_simple_plumerise' )
-                CALL fire_emis_simple_plumerise (config_flags%wif_fire_inj, config_flags%aer_fire_emit_opt  &
-                    ,z_at_mass, pblh, qnwfa_curr, qnbca_curr   &
-                    ,qnocbb2d, qnbcbb2d, dt, ids, ide, jds, jde, kds, kde                    &
-                    ,ims, ime, jms, jme, kms, kme, its, ite, jts, jte, kts, kte                       )
+                CALL fire_emis_simple_plumerise (                      &
+                    WIF_FIRE_INJ=config_flags%wif_fire_inj,            &
+                    AER_FIRE_EMIT_OPT=config_flags%aer_fire_emit_opt,  &
+                    Z_AT_MASS=z_at_mass, PBLH=pblh,                    &
+                    NWFA=qnwfa_curr, NBCA=qnbca_curr,                  &
+                    NOCBB2D=qnocbb2d, NBCBB2D=qnbcbb2d, DT_IN=dt,      &
+                    IDS=ids,IDE=ide, JDS=jds,JDE=jde, KDS=kds,KDE=kde, &
+                    IMS=ims,IME=ime, JMS=jms,JME=jme, KMS=kms,KME=kme, &
+                    ITS=its,ITE=ite, JTS=jts,JTE=jte, KTS=kts,KTE=kte)
+              ELSEIF (config_flags%aer_fire_emit_opt.eq.11) then
+                CALL wrf_debug ( 200 , ' call fire_emis_simple_plumerise ???????' )
+                CALL fire_emis_simple_plumerise (                      &
+                    WIF_FIRE_INJ=config_flags%wif_fire_inj,            &
+                    AER_FIRE_EMIT_OPT=config_flags%aer_fire_emit_opt,  & 
+                    FIRE_AEROSOL_TAU=config_flags%fire_aerosol_tau,    &
+                    Z_AT_MASS=z_at_mass, PBLH=pblh,                    &
+                    NWFA=qnwfa_curr, NBCA=qnbca_curr,                  &
+                    NOCA1=qnfoc1_curr, NBCA1=qnfbc1_curr,              &
+!                    NOCBB2D=qnocbb2d, NBCBB2D=qnbcbb2d,                &
+                    NFOC1_2d=qnfoc1_2d, NFBC1_2d=qnfbc1_2d, DT_IN=dt,  &
+                    IDS=ids,IDE=ide, JDS=jds,JDE=jde, KDS=kds,KDE=kde, &
+                    IMS=ims,IME=ime, JMS=jms,JME=jme, KMS=kms,KME=kme, &
+                    ITS=its,ITE=ite, JTS=jts,JTE=jte, KTS=kts,KTE=kte)
               ENDIF
 
              ELSE

@@ -12,7 +12,7 @@ PUBLIC:: fuel_moisture,advance_moisture,read_namelist_fire
 
 ! variables
 PUBLIC:: moisture_classes
-PUBLIC::fuelmc_g
+PUBLIC::fuelmc_g,nfuelcats,mfuelcats ! ME for fire emissions
 
 PUBLIC::fire_params
 

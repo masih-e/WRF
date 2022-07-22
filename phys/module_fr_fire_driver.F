@@ -22,7 +22,8 @@ use module_fr_fire_model
 use module_fr_fire_phys, only : fire_params , init_fuel_cats
 use module_fr_fire_util
 use module_fr_fire_core, only: ignition_line_type
-use module_fr_fire_atm, only: add_fire_tracer_emissions 
+use module_fr_fire_atm, only: add_fire_tracer_emissions, add_fire_aerosol_emissions, &
+                              read_emissions_table
 
 USE module_domain, only: domain
 USE module_configure, only: grid_config_rec_type
@@ -256,6 +257,15 @@ halo_fire_mag_sub
        endif
 #endif
 
+        if(fire_ifun.eq.2)then
+            write(msg,'(a,i4)') 'aer_fire_emit_opt=', config_flags%aer_fire_emit_opt
+            call message(msg)
+            if(config_flags%aer_fire_emit_opt.gt. 10)then
+                ! need reading fuel categories first
+                call read_emissions_table()
+            endif ! config_flags
+        endif  ! fire_ifun
+
         
         ! need domain by 1 smaller, in last row.col winds are not set properly
         call fire_driver_phys ( &
@@ -355,6 +365,20 @@ halo_fire_mag_sub
                  grid%tracer,config_flags%fire_tracer_smoke)
      endif
 ! DME
+! ME update aerosols
+     if(fire_ifun.eq.6 .AND. config_flags%aer_fire_emit_opt.eq.11)then
+       call add_fire_aerosol_emissions(config_flags%aer_fire_emit_opt,grid%dt,grid%dx,grid%dy, &
+                 ifms,ifme,jfms,jfme,    &
+                 ifps,ifpe,jfps,jfpe,    &
+                 ids,ide,kds,kde,jds,jde,          &
+                 ims,ime,kms,kme,jms,jme,          &
+                 ips,ipe,kps,kpe,jps,jpe,          &
+                 rho,dz8w,                         &
+                 grid%burnt_area_dt,grid%fgip, grid%nfuel_cat, &
+                 grid%qnfbc1_2d,grid%qnfoc1_2d)
+
+     endif
+! ME
       enddo
     enddo
     if(tsteps>0)call crash('fire_driver_em: test run of uncoupled fire model completed')

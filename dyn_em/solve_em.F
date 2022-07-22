@@ -3842,6 +3842,8 @@ BENCH_START(micro_driver_tim)
       &        , QNWFA_CURR=scalar(ims,kms,jms,P_QNWFA), F_QNWFA=F_QNWFA  & ! for Thompson water-friendly aerosol
       &        , QNIFA_CURR=scalar(ims,kms,jms,P_QNIFA), F_QNIFA=F_QNIFA  & ! for Thompson ice-friendly aerosol
       &        , QNBCA_CURR=scalar(ims,kms,jms,P_QNBCA), F_QNBCA=F_QNBCA  & ! for Thompson black carbon aerosol
+      &        , QNFBC1_CURR=scalar(ims,kms,jms,P_QNFBC1), F_QNFBC1=F_QNFBC1  & ! fire emissions organic carbon aerosol M.E.
+      &        , QNFOC1_CURR=scalar(ims,kms,jms,P_QNFOC1), F_QNFOC1=F_QNFOC1  & ! fire emissions organic carbon aerosol M.E.
       &        , QNH_CURR=scalar(ims,kms,jms,P_QNH), F_QNH=F_QNH          & ! for milbrandt2mom and nssl_2mom
       &        , QNIC_CURR=scalar(ims,kms,jms,P_QNIC), F_QNIC=F_QNIC          &
       &        , QNIP_CURR=scalar(ims,kms,jms,P_QNIP), F_QNIP=F_QNIP          &
@@ -3925,6 +3927,7 @@ BENCH_START(micro_driver_tim)
       &        , has_reqc=grid%has_reqc, has_reqi=grid%has_reqi, has_reqs=grid%has_reqs & ! G. Thompson
       &        , qnwfa2d=grid%qnwfa2d, qnifa2d=grid%qnifa2d, qnbca2d=grid%qnbca2d       & ! G. Thompson
       &        , qnocbb2d=grid%qnocbb2d, qnbcbb2d=grid%qnbcbb2d             & ! for biomass burning emissions
+      &        , qnfbc1_2d=grid%qnfbc1_2d, qnfoc1_2d=grid%qnfoc1_2d         & ! for biomass burning emissions (fire module) M.E.
       &        , diagflag=diag_flag, do_radar_ref=config_flags%do_radar_ref &
       &        , ke_diag=ke_diag                                           &
       &        ,u=grid%u_phy,v=grid%v_phy &
