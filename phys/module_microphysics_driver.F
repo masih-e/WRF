@@ -1117,7 +1117,7 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
               end if
 
               IF ((config_flags%aer_fire_emit_opt.eq.1).or.(config_flags%aer_fire_emit_opt.eq.2))  then
-                CALL wrf_debug ( 200 , ' call fire_emis_simple_plumerise' )
+                CALL wrf_debug ( 200 , ' call fire_emis_simple_plumerise OPT 1 or 2' )
                 CALL fire_emis_simple_plumerise (                      &
                     WIF_FIRE_INJ=config_flags%wif_fire_inj,            &
                     AER_FIRE_EMIT_OPT=config_flags%aer_fire_emit_opt,  &
@@ -1128,15 +1128,27 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                     IMS=ims,IME=ime, JMS=jms,JME=jme, KMS=kms,KME=kme, &
                     ITS=its,ITE=ite, JTS=jts,JTE=jte, KTS=kts,KTE=kte)
               ELSEIF (config_flags%aer_fire_emit_opt.eq.11) then
-                CALL wrf_debug ( 200 , ' call fire_emis_simple_plumerise ???????' )
+                CALL wrf_debug ( 200 , ' call fire_emis_simple_plumerise OPT 11' )
                 CALL fire_emis_simple_plumerise (                      &
                     WIF_FIRE_INJ=config_flags%wif_fire_inj,            &
-                    AER_FIRE_EMIT_OPT=config_flags%aer_fire_emit_opt,  & 
+                    AER_FIRE_EMIT_OPT=config_flags%aer_fire_emit_opt,  &
+                    FIRE_AEROSOL_TAU=config_flags%fire_aerosol_tau,    &
+                    Z_AT_MASS=z_at_mass, PBLH=pblh,                    &
+                    NWFA=qnwfa_curr,                                   &
+                    NOCA1=qnfoc1_curr,                                 &
+                    NFOC1_2d=qnfoc1_2d, DT_IN=dt,                      &
+                    IDS=ids,IDE=ide, JDS=jds,JDE=jde, KDS=kds,KDE=kde, &
+                    IMS=ims,IME=ime, JMS=jms,JME=jme, KMS=kms,KME=kme, &
+                    ITS=its,ITE=ite, JTS=jts,JTE=jte, KTS=kts,KTE=kte)
+              ELSEIF (config_flags%aer_fire_emit_opt.eq.12) then
+                CALL wrf_debug ( 200 , ' call fire_emis_simple_plumerise OPT 12' )
+                CALL fire_emis_simple_plumerise (                      &
+                    WIF_FIRE_INJ=config_flags%wif_fire_inj,            &
+                    AER_FIRE_EMIT_OPT=config_flags%aer_fire_emit_opt,  &
                     FIRE_AEROSOL_TAU=config_flags%fire_aerosol_tau,    &
                     Z_AT_MASS=z_at_mass, PBLH=pblh,                    &
                     NWFA=qnwfa_curr, NBCA=qnbca_curr,                  &
                     NOCA1=qnfoc1_curr, NBCA1=qnfbc1_curr,              &
-!                    NOCBB2D=qnocbb2d, NBCBB2D=qnbcbb2d,                &
                     NFOC1_2d=qnfoc1_2d, NFBC1_2d=qnfbc1_2d, DT_IN=dt,  &
                     IDS=ids,IDE=ide, JDS=jds,JDE=jde, KDS=kds,KDE=kde, &
                     IMS=ims,IME=ime, JMS=jms,JME=jme, KMS=kms,KME=kme, &

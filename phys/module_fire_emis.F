@@ -36,9 +36,9 @@ MODULE module_fire_emis
       REAL, OPTIONAL                            , INTENT(IN)    :: fire_aerosol_tau
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(IN)    :: z_at_mass
       REAL, DIMENSION(ims:ime, jms:jme)         , INTENT(IN)    :: pblh
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT) :: nwfa, nbca
+      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT) :: nwfa
       REAL, OPTIONAL, DIMENSION(ims:ime, jms:jme)         , INTENT(IN)    :: nocbb2d, nbcbb2d
-      REAL, OPTIONAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT) :: noca1, nbca1
+      REAL, OPTIONAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT) :: noca1, nbca1, nbca
       REAL, OPTIONAL, DIMENSION(ims:ime, jms:jme)  ,        INTENT(IN)    :: nfoc1_2d, nfbc1_2d
       REAL                                      , INTENT(IN)    :: dt_in
       INTEGER                                   , INTENT(IN)    :: ids, ide, jds, jde, kds, kde, &
@@ -58,15 +58,17 @@ MODULE module_fire_emis
       if (wif_fire_inj .eq. 0) then
         do j = j_start, j_end
           do i = i_start, i_end
-            if (aer_fire_emit_opt .eq. 11) then
-                ! Emit fresh aerosols 
-              noca1(i,kts,j) = noca1(i,kts,j) + nfoc1_2d(i,j)
-              nbca1(i,kts,j) = nbca1(i,kts,j) + nfbc1_2d(i,j)
-            else
+            if ((aer_fire_emit_opt .eq. 1) .or. (aer_fire_emit_opt .eq. 2)) then
               nwfa(i,kts,j) = nwfa(i,kts,j) + nocbb2d(i,j)*dt_in
               if (aer_fire_emit_opt .eq. 2) then
                 nbca(i,kts,j) = nbca(i,kts,j) + nbcbb2d(i,j)*dt_in
               end if
+            elseif ((aer_fire_emit_opt .eq. 11) .or. (aer_fire_emit_opt .eq. 12)) then
+                ! Emit fresh aerosols 
+              noca1(i,kts,j) = noca1(i,kts,j) + nfoc1_2d(i,j)
+              if (aer_fire_emit_opt .eq. 12) then
+              nbca1(i,kts,j) = nbca1(i,kts,j) + nfbc1_2d(i,j)
+              endif
             end if 
           end do
         end do
@@ -79,18 +81,8 @@ MODULE module_fire_emis
             do while (z_at_mass(i,k_inj,j) .lt. pblh(i,j))
               k_inj = k_inj + 1
             end do
-            if (aer_fire_emit_opt .eq. 11) then
-                ! Compute num of OC aerosols to emit per grid cell
-              noc_emit = nfoc1_2d(i,j)/k_inj
-                ! Compute num of BC aerosols to emit per grid cell    
-              nbc_emit = nfbc1_2d(i,j)/k_inj
-                ! Emit aerosols
-              do k = kts, k_inj
-                noca1(i,k,j) = noca1(i,k,j) + noc_emit
-                nbca1(i,k,j) = nbca1(i,k,j) + nbc_emit
-              end do
 
-            else
+            if ((aer_fire_emit_opt .eq. 1) .or. (aer_fire_emit_opt .eq. 2)) then
                 ! Compute num of OC aerosols to emit per grid cell
               noc_emit = (nocbb2d(i,j)*dt_in)/k_inj
                 ! Compute num of BC aerosols to emit per grid cell
@@ -104,6 +96,20 @@ MODULE module_fire_emis
                   nbca(i,k,j) = nbca(i,k,j) + nbc_emit
                 end if
               end do
+            elseif ((aer_fire_emit_opt .eq. 11) .or. (aer_fire_emit_opt .eq. 12)) then
+                ! Compute num of OC aerosols to emit per grid cell
+              noc_emit = nfoc1_2d(i,j)/k_inj
+                ! Compute num of BC aerosols to emit per grid cell    
+              if (aer_fire_emit_opt .eq. 12) then
+                nbc_emit = nfbc1_2d(i,j)/k_inj
+              end if
+                ! Emit aerosols
+              do k = kts, k_inj
+                noca1(i,k,j) = noca1(i,k,j) + noc_emit
+                if (aer_fire_emit_opt .eq. 12) then
+                  nbca1(i,k,j) = nbca1(i,k,j) + nbc_emit
+                end if
+              end do
             end if
           end do
         end do
@@ -113,15 +119,16 @@ MODULE module_fire_emis
       end if
 
         ! Convert the hydrophobic aerosols to hydrophilic
-      if (aer_fire_emit_opt .eq. 11) then
+      if ((aer_fire_emit_opt .eq. 11) .or. (aer_fire_emit_opt .eq. 12)) then
         do j = j_start, j_end
           do i = i_start, i_end
             do k = kts, kte
-              nwfa(i,k,j)  = nwfa(i,k,j) + MAX(0., dt_in / (fire_aerosol_tau * 3600.0) * (noca1(i,k,j)))
-              nbca(i,k,j)  = nbca(i,k,j) + MAX(0., dt_in / (fire_aerosol_tau * 3600.0) * (nbca1(i,k,j)))
-              ! Here we might add the nbca1 to nbca for the radiative effect? and not to the nwfa?
-              nbca1(i,k,j) = MAX(0., nbca1(i,k,j) * (1.0 - dt_in / (fire_aerosol_tau * 3600.0)))
               noca1(i,k,j) = MAX(0., noca1(i,k,j) * (1.0 - dt_in / (fire_aerosol_tau * 3600.0)))
+              nwfa(i,k,j)  = nwfa(i,k,j) + MAX(0., dt_in / (fire_aerosol_tau * 3600.0) * (noca1(i,k,j)))
+              if (aer_fire_emit_opt .eq. 12) then
+                nbca1(i,k,j) = MAX(0., nbca1(i,k,j) * (1.0 - dt_in / (fire_aerosol_tau * 3600.0)))
+                nbca(i,k,j)  = nbca(i,k,j) + MAX(0., dt_in / (fire_aerosol_tau * 3600.0) * (nbca1(i,k,j)))
+              end if
             end do 
           end do
         end do 

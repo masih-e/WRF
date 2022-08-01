@@ -111,13 +111,14 @@ subroutine add_fire_aerosol_emissions(    &
        its,ite,kts,kte,jts,jte,          &
        rho,dz8w,                         &
        burnt_area_dt,fgip,nfuel_cat,     &
-       qnfbc1_2d, qnfoc1_2d)
+       qnfoc1_2d,qnfbc1_2d)
 ! ME subroutine for aerosols
 
 implicit none
 ! arguments
 integer,intent(in)::aer_fire_emit_opt
-real,intent(inout),dimension(ims:ime, jms:jme)::qnfbc1_2d,qnfoc1_2d
+real,intent(inout),dimension(ims:ime, jms:jme)::qnfoc1_2d
+real,intent(inout),dimension(ims:ime, jms:jme),optional::qnfbc1_2d
 real,intent(in)::dt,dx,dy
 integer,intent(in)::ifms,ifme,jfms,jfme,ifts,ifte,jtfs,jfte,ids,ide,kds,kde,jds,jde,ims,ime,kms,kme,jms,jme,its,ite,kts,kte,jts,jte
 real,intent(in)::rho(ims:ime,kms:kme,jms:jme),dz8w(ims:ime,kms:kme,jms:jme)
@@ -154,34 +155,41 @@ do j=max(jds+1,jts),min(jte,jde-2)
            j_f=joff+jbase
            do ioff=0,ir-1
                i_f=ioff+ibase
-! if (num_tracer >0) then
+
 ! avgw           :fire grid ratio                     (-)
-! efactor_bc     :emission factor for bc              (g/kg biomass burned)
+! efactors(cat)  :emission factor for bc              (g/kg biomass burned)
 ! burnt_area_dt  :fraction of cell area burnt in dt   (-)
 ! fgip           :init mass of surface fuel           (kg/m^2)
 ! rho            :air density                         (kg/m^3)
 ! dz8w           :dz between full levels              (m)
 ! fire_qnxxxx    : # / kg
-! I have inititialized qnbcxa2d with zeros in the init_fire
 
-                     fuel_burnt = fgip(i_f,j_f) * burnt_area_dt(i_f,j_f) ! kg/m^2 
-                     cat = nfuel_cat(i_f, j_f)                       ! usually 1 to 13
+               fuel_burnt = fgip(i_f,j_f) * burnt_area_dt(i_f,j_f) ! kg/m^2 
+               cat = nfuel_cat(i_f, j_f)                       ! usually 1 to 13
 
-                     ! Aerosols
-                     ! fuel_burnt kg/m^2 *  table g/kg 
-!                     conv = avgw / (rho(i,kts,j) * dz8w(i,kts,j)) * 1.0E6 ! convert to ug/kg dry air 
-                     conv = avgw / (rho(i,kts,j) * dz8w(i,kts,j))  ! convert to g/kg dry air 
-                     emis = bc1(cat) * fuel_burnt
-                     mass_bc1(i,j) = mass_bc1(i,j) + emis * conv
-                     emis = oc1(cat) * fuel_burnt
-                     mass_oc1(i,j) = mass_oc1(i,j) + emis * conv
-
-call    calc_numc(16, mass_bc1, mass_oc1, rho, &
-              qnfbc1_2d, qnfoc1_2d,            &
-              ids,ide, jds,jde, kds,kde,       &
-              ims,ime, jms,jme, kms,kme,       &
-              its,ite, jts,jte, kts,kte       )
-
+               ! Aerosols
+               ! fuel_burnt kg/m^2 *  table g/kg 
+               conv = avgw / (rho(i,kts,j) * dz8w(i,kts,j))  ! convert to g/kg dry air 
+               ! BC mass
+               emis = bc1(cat) * fuel_burnt
+               mass_bc1(i,j) = mass_bc1(i,j) + emis * conv
+               ! OC mass
+               emis = oc1(cat) * fuel_burnt
+               mass_oc1(i,j) = mass_oc1(i,j) + emis * conv
+               
+               if (aer_fire_emit_opt .eq. 11) then
+                 call    calc_numc(16, mass_bc1, mass_oc1, rho, & 
+                 ids,ide, jds,jde, kds,kde,       &
+                 ims,ime, jms,jme, kms,kme,       &
+                 its,ite, jts,jte, kts,kte,       &
+                 qnfoc1_2d)
+               elseif (aer_fire_emit_opt .eq. 12) then
+                 call    calc_numc(16, mass_bc1, mass_oc1, rho, & 
+                 ids,ide, jds,jde, kds,kde,       &
+                 ims,ime, jms,jme, kms,kme,       &
+                 its,ite, jts,jte, kts,kte,       &
+                 qnfoc1_2d, qnfbc1_2d)
+               endif
            enddo
        enddo
     enddo
@@ -358,11 +366,11 @@ END SUBROUTINE fire_tendency
 !***
 !
 
-subroutine calc_numc(nbin_o, emism_bc1, emism_oc1, rho,   &
-          bc1_2d, oc1_2d,                               &
+subroutine calc_numc(nbin_o, emism_bc1, emism_oc1, rho,   & 
           ids,ide, jds,jde, kds,kde,                    &
           ims,ime, jms,jme, kms,kme,                    &
-          its,ite, jts,jte, kts,kte                     )
+          its,ite, jts,jte, kts,kte,                    &
+          oc1_2d, bc1_2d)
 
     USE module_configure
     USE module_model_constants
@@ -374,9 +382,9 @@ subroutine calc_numc(nbin_o, emism_bc1, emism_oc1, rho,   &
     INTEGER, INTENT(IN) :: ids,ide, jds,jde, kds,kde
     REAL, DIMENSION(ims:ime, jms:jme),             &
           INTENT(IN ) ::  emism_bc1, emism_oc1
-    REAL, DIMENSION(ims:ime, jms:jme),             &
+    REAL, DIMENSION(ims:ime, jms:jme), OPTIONAL,   &
           INTENT(OUT ) :: bc1_2d, oc1_2d
-    REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                       &
+    REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),  &
           INTENT(IN ) ::  rho!,relhum
 
 !
@@ -477,7 +485,9 @@ subroutine calc_numc(nbin_o, emism_bc1, emism_oc1, rho,   &
         if (emism_bc1(i,j) .gt. 0.) then
   ! convert ug / kg dry air to g / kg
           conv1a =  1.0E-6
-          bc1_2d(i, j)= emism_bc1(i,j) * conv1a / dens_bc * sum(number_bin)
+          if (present(bc1_2d)) then
+            bc1_2d(i, j)= emism_bc1(i,j) * conv1a / dens_bc * sum(number_bin)
+          endif
           oc1_2d(i, j)= emism_oc1(i,j) * conv1a / dens_oc * sum(number_bin)
         endif
       end do

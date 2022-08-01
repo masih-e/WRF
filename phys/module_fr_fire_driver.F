@@ -366,17 +366,28 @@ halo_fire_mag_sub
      endif
 ! DME
 ! ME update aerosols
-     if(fire_ifun.eq.6 .AND. config_flags%aer_fire_emit_opt.eq.11)then
-       call add_fire_aerosol_emissions(config_flags%aer_fire_emit_opt,grid%dt,grid%dx,grid%dy, &
-                 ifms,ifme,jfms,jfme,    &
-                 ifps,ifpe,jfps,jfpe,    &
-                 ids,ide,kds,kde,jds,jde,          &
-                 ims,ime,kms,kme,jms,jme,          &
-                 ips,ipe,kps,kpe,jps,jpe,          &
-                 rho,dz8w,                         &
-                 grid%burnt_area_dt,grid%fgip, grid%nfuel_cat, &
-                 grid%qnfbc1_2d,grid%qnfoc1_2d)
-
+     if(fire_ifun.eq.6) then
+       if (config_flags%aer_fire_emit_opt.eq.11) then
+         call add_fire_aerosol_emissions(config_flags%aer_fire_emit_opt,grid%dt,grid%dx,grid%dy, &
+                   ifms,ifme,jfms,jfme,    &
+                   ifps,ifpe,jfps,jfpe,    &
+                   ids,ide,kds,kde,jds,jde,          &
+                   ims,ime,kms,kme,jms,jme,          &
+                   ips,ipe,kps,kpe,jps,jpe,          &
+                   rho,dz8w,                         &
+                   grid%burnt_area_dt,grid%fgip, grid%nfuel_cat, &
+                   grid%qnfoc1_2d)
+       elseif (config_flags%aer_fire_emit_opt.eq.12) then
+         call add_fire_aerosol_emissions(config_flags%aer_fire_emit_opt,grid%dt,grid%dx,grid%dy, &
+                   ifms,ifme,jfms,jfme,    &
+                   ifps,ifpe,jfps,jfpe,    &
+                   ids,ide,kds,kde,jds,jde,          &
+                   ims,ime,kms,kme,jms,jme,          &
+                   ips,ipe,kps,kpe,jps,jpe,          &
+                   rho,dz8w,                         &
+                   grid%burnt_area_dt,grid%fgip, grid%nfuel_cat, &
+                   grid%qnfoc1_2d,grid%qnfbc1_2d)
+       endif
      endif
 ! ME
       enddo

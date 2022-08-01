@@ -83,7 +83,8 @@ package   use_wif_input_bc    wif_input_opt==2             -             scalar:
 
 package   emit_oc_bb          aer_fire_emit_opt==1         -             state:qnocbb2d
 package   emit_ocbc_bb        aer_fire_emit_opt==2         -             state:qnocbb2d,qnbcbb2d
-package   fire_ocbc_bb        aer_fire_emit_opt==11        -             scalar:qnbca,qnfbc1,qnfoc1;state:qnfbc1_2d,qnfoc1_2d
+package   fire_oc_bb          aer_fire_emit_opt==11        -             scalar:qnfoc1;state:qnfoc1_2d
+package   fire_ocbc_bb        aer_fire_emit_opt==12        -             scalar:qnfbc1,qnfoc1;state:qnfbc1_2d,qnfoc1_2d
 
 state   real    qnwfa          ikjftb  scalar      1         -     \
    i0rhusdf=(bdy_interp:dt)    "QNWFA"         "water-friendly aerosol number con" "# kg(-1)"

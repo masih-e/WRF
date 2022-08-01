@@ -2537,31 +2537,35 @@
 !  Set aer_fire_emit_opt for Thompson-MP-Aero (mp_physics=28)
 !-----------------------------------------------------------------------
      DO i = 1, model_config_rec % max_dom
-       if (model_config_rec%wif_fire_emit) then
-       wrf_err_message = '--- NOTE: wif_fire_emit .true.'
-       CALL wrf_debug ( 0, wrf_err_message )
-       endif
-       if (model_config_rec%aer_init_opt .eq. 2) then
-       wrf_err_message = '--- NOTE: aer_init_opt = 2' 
-       CALL wrf_debug ( 0, wrf_err_message )
-       endif
-
        IF ( model_config_rec%mp_physics(i) .EQ. THOMPSONAERO .AND. model_config_rec%wif_fire_emit) THEN
-         IF ( model_config_rec%aer_init_opt .EQ. 2 .AND. model_config_rec%active_fire .EQ. 0) THEN
-           IF ( model_config_rec%wif_input_opt .EQ. 1) THEN
-             model_config_rec%aer_fire_emit_opt = 1
-           ELSE IF ( model_config_rec%wif_input_opt .EQ. 2 .AND. model_config_rec%active_fire .EQ. 0) THEN
-             model_config_rec%aer_fire_emit_opt = 2
+         IF ( model_config_rec%active_fire .EQ. 0 ) THEN
+           IF ( model_config_rec%aer_init_opt .EQ. 2 ) THEN
+             IF ( model_config_rec%wif_input_opt .EQ. 1 ) THEN
+               model_config_rec%aer_fire_emit_opt = 1
+               wrf_err_message = '--- NOTE: select aer_fire_emit_opt=1 '
+               CALL wrf_debug ( 0, TRIM( wrf_err_message ) )
+             ELSE IF ( model_config_rec%wif_input_opt .EQ. 2 ) THEN
+               model_config_rec%aer_fire_emit_opt = 2
+               wrf_err_message = '--- NOTE: select aer_fire_emit_opt=2 '
+               CALL wrf_debug ( 0, TRIM( wrf_err_message ) )
+             END IF
+           ELSE IF ( model_config_rec%aer_init_opt .EQ. 0 .OR. model_config_rec%aer_init_opt .EQ. 1 ) THEN
+             wrf_err_message = '--- ERROR: wif_fire_emit=.true. but selected aerosol source does not contain fire emissions '
+             CALL wrf_debug ( 0, TRIM( wrf_err_message ) )
+             wrf_err_message = '--- ERROR: Please use first guess aerosol source with fire emissions and set use_rap_aero_icbc=.true. '
+             CALL wrf_debug ( 0, TRIM( wrf_err_message ) )
+             count_fatal_error = count_fatal_error + 1
            END IF
-           ! here I am not sure about the wif_input_opt. If it is not 2 then we need to take out all of the qnbca instances 
-         ELSE IF (model_config_rec%active_fire .EQ. 1) THEN
+         ELSE IF ( model_config_rec%active_fire .EQ. 1 ) THEN
+           IF ( model_config_rec%wif_input_opt .EQ. 1 ) THEN
              model_config_rec%aer_fire_emit_opt = 11
-         ELSE IF ( model_config_rec%aer_init_opt .EQ. 0 .OR. model_config_rec%aer_init_opt .EQ. 1) THEN
-           wrf_err_message = '--- ERROR: wif_fire_emit=.true. but selected aerosol source does not contain fire emissions '
-           CALL wrf_debug ( 0, TRIM( wrf_err_message ) )
-           wrf_err_message = '--- ERROR: Please use first guess aerosol source with fire emissions and set use_rap_aero_icbc=.true. '
-           CALL wrf_debug ( 0, TRIM( wrf_err_message ) )
-           count_fatal_error = count_fatal_error + 1
+             wrf_err_message = '--- NOTE: select aer_fire_emit_opt=11 '
+             CALL wrf_debug ( 0, TRIM( wrf_err_message ) )
+           ELSE IF ( model_config_rec%wif_input_opt .EQ. 2 ) THEN
+             model_config_rec%aer_fire_emit_opt = 12
+             wrf_err_message = '--- NOTE: select aer_fire_emit_opt=12 '
+             CALL wrf_debug ( 0, TRIM( wrf_err_message ) )
+           END IF
          END IF
        END IF
      END DO
