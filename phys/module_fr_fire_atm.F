@@ -382,8 +382,10 @@ subroutine calc_numc(nbin_o, emism_bc1, emism_oc1, rho,   &
     INTEGER, INTENT(IN) :: ids,ide, jds,jde, kds,kde
     REAL, DIMENSION(ims:ime, jms:jme),             &
           INTENT(IN ) ::  emism_bc1, emism_oc1
+    REAL, DIMENSION(ims:ime, jms:jme),    &
+          INTENT(OUT ) :: oc1_2d
     REAL, DIMENSION(ims:ime, jms:jme), OPTIONAL,   &
-          INTENT(OUT ) :: bc1_2d, oc1_2d
+          INTENT(OUT ) :: bc1_2d
     REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),  &
           INTENT(IN ) ::  rho!,relhum
 
