@@ -175,25 +175,26 @@ do j=max(jds+1,jts),min(jte,jde-2)
                mass_bc1(i,j) = mass_bc1(i,j) + emis * conv
                ! OC mass
                emis = oc1(cat) * fuel_burnt
-               mass_oc1(i,j) = mass_oc1(i,j) + emis * conv
-               
-               if (aer_fire_emit_opt .eq. 11) then
-                 call    calc_numc(16, mass_bc1, mass_oc1, rho, & 
-                 ids,ide, jds,jde, kds,kde,       &
-                 ims,ime, jms,jme, kms,kme,       &
-                 its,ite, jts,jte, kts,kte,       &
-                 qnfoc1_2d)
-               elseif (aer_fire_emit_opt .eq. 12) then
-                 call    calc_numc(16, mass_bc1, mass_oc1, rho, & 
-                 ids,ide, jds,jde, kds,kde,       &
-                 ims,ime, jms,jme, kms,kme,       &
-                 its,ite, jts,jte, kts,kte,       &
-                 qnfoc1_2d, qnfbc1_2d)
-               endif
+               mass_oc1(i,j) = mass_oc1(i,j) + emis * conv               
            enddo
        enddo
     enddo
 enddo
+
+if (aer_fire_emit_opt .eq. 11) then
+  call    calc_numc(16, mass_bc1, mass_oc1, rho, & 
+  ids,ide, jds,jde, kds,kde,       &
+  ims,ime, jms,jme, kms,kme,       &
+  its,ite, jts,jte, kts,kte,       &
+  qnfoc1_2d)
+elseif (aer_fire_emit_opt .eq. 12) then
+call    calc_numc(16, mass_bc1, mass_oc1, rho, & 
+  ids,ide, jds,jde, kds,kde,       &
+  ims,ime, jms,jme, kms,kme,       &
+  its,ite, jts,jte, kts,kte,       &
+  qnfoc1_2d, qnfbc1_2d)
+endif
+
 
 end subroutine add_fire_aerosol_emissions
 
@@ -485,12 +486,10 @@ subroutine calc_numc(nbin_o, emism_bc1, emism_oc1, rho,   &
     do j=max(jds+1,jts),min(jte,jde-2)
       do i=max(ids+1,its),min(ite,ide-2)
         if (emism_bc1(i,j) .gt. 0.) then
-  ! convert ug / kg dry air to g / kg
-          conv1a =  1.0E-6
           if (present(bc1_2d)) then
-            bc1_2d(i, j)= emism_bc1(i,j) * conv1a / dens_bc * sum(number_bin)
+            bc1_2d(i, j)= emism_bc1(i,j) / dens_bc * sum(number_bin)
           endif
-          oc1_2d(i, j)= emism_oc1(i,j) * conv1a / dens_oc * sum(number_bin)
+          oc1_2d(i, j)= emism_oc1(i,j) / dens_oc * sum(number_bin)
         endif
       end do
     end do
