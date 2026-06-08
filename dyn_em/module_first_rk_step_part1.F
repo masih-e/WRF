@@ -1517,6 +1517,13 @@ BENCH_END(pbl_driver_tim)
          endif
 
          call grid%fire_state%Handle_output (grid%cfbm_namelist)
+#if !defined(DM_PARALLEL) || defined(STUBMPI)
+         ! restart_flag is set from WRF's restart alarm for the step that just completed.
+         if (present (restart_flag)) then
+           if (restart_flag) call grid%fire_state%Write_restart ( &
+               grid%cfbm_namelist)
+         end if
+#endif
 #endif
        case (2)
 ! Jan Mandel's call to SFIRE
